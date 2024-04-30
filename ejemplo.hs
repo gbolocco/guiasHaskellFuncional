@@ -1,0 +1,1 @@
+doble num = num * 2
