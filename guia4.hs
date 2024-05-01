@@ -68,5 +68,63 @@ parDeFns func1 func2 valor = (func1 valor, func2 valor)
 esMultiploDe :: Integral b => b -> b -> Bool
 esMultiploDe numerador divisor = (==0).mod numerador $ divisor
 
-esMultiploDeAlguno :: Integral a => a -> [a] -> [Bool]
-esMultiploDeAlguno numero lista = map (esMultiploDe numero) lista 
+esMultiploDeAlguno numero lista = any (esMultiploDe numero) lista 
+
+--2: Armar una función p romedios/1, que dada una lista de listas me devuelve la
+--lista de los promedios de cada lista-elemento
+
+promedio :: Fractional a => [a] -> a
+promedio lista = sum lista / fromIntegral (length lista)
+
+promedioListas :: Fractional a => [[a]] -> [a]
+promedioListas lista = map promedio lista
+
+--3: Armar una función promediosSinAplazos que dada una lista de listas me devuelve
+--la lista de los promedios de cada lista-elemento, excluyendo los que sean menores a 4 que no se cuentan
+
+filtrarNotas :: [Float] -> [Float]
+filtrarNotas lista = filter (>=4) lista
+
+promediosSinAplazos :: [[Float]] -> [Float]
+--promediosSinAplazos lista = map promedio (map filtrarNotas lista)
+promediosSinAplazos lista = (map promedio).(map filtrarNotas) $ lista --Misma funcion con composicion y aplicacion parcial
+
+--4: Definir la función mejoresNotas, que dada la información
+--de un curso devuelve la lista con la mejor nota de cada alumno.
+
+mejoresNotas :: Ord a => [[a]] -> [a]
+mejoresNotas lista = map maximum lista
+
+--5: Definir la función aprobó/1, que dada la lista de las notas de un alumno devuelve True si el alumno aprobó.
+--Se dice que un alumno aprobó si todas sus notas son 6 o más.
+
+aproboNotas lista = not.(any (<6)) $ lista -- Por notas
+aproboPromedio = not.(< 6).(promedio ) --Por Promedio
+
+--6: Definir la función aprobaron/1, que dada la información de un curso devuelve la información de los alumnos que aprobaron.
+
+aprobaron :: [[Float]] -> [[Float]]
+aprobaron lista = filter aproboPromedio lista
+
+--7: Definir la función divisores/1, que recibe un número y devuelve la lista de divisores.
+divisores numero = filter (esMultiploDe numero) [1..numero]
+
+--8: Definir la función exists/2, que dadas una función booleana y una lista devuelve True
+--si la función da True para algún elemento de la lista.
+
+exists funcion lista = any funcion lista -- Exists es igual a la funcion ANY, no entiendo que pide la consigna
+
+--9: Definir la función hayAlgunNegativo/2, que dada una lista de números y un (…algo…)
+--devuelve True si hay algún nro. negativo
+
+hayAlgunNegativo :: [Int] -> a -> Bool
+hayAlgunNegativo lista _ = any (<0) lista --  hayAlgunNegativo [1,2,3,-3] "Hola mundo" -> True
+
+--10: Definir la función aplicarFunciones/2, que dadas una lista de funciones y un valor cualquiera,
+--devuelve la lista del resultado de aplicar las funciones al valor.
+                    
+                --Funciones - valor - resultados
+aplicarFunciones :: [a -> b] -> a -> [b]
+aplicarFunciones listaDeFunciones valor = map (\f -> f valor) listaDeFunciones
+
+-- aplicarFunciones [even,(*2),(-1),abs] 2 == FALTA TERMINAR ==
