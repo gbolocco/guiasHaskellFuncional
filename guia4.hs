@@ -128,3 +128,135 @@ aplicarFunciones :: [a -> b] -> a -> [b]
 aplicarFunciones listaDeFunciones valor = map (\f -> f valor) listaDeFunciones
 
 -- aplicarFunciones [even,(*2),(-1),abs] 2 == FALTA TERMINAR ==
+
+--11: Definir la función sumaF/2, que dadas una lista de funciones y un número, devuelve la suma del resultado de aplicar las funciones al número.
+
+sumaF :: Num b =>[(a -> b)] -> a -> b
+sumaF fs n = sum (aplicarFunciones fs n)
+
+{-
+--12: Un programador Haskell está haciendo las cuentas para un juego de fútbol virtual
+(como el Hattrick o el ManagerZone). En un momento le llega la información sobre
+la habilidad de cada jugador de un equipo, que es un número entre 0 y 12, y la orden
+de subir la forma de todos los jugadores en un número entero;
+p.ej., subirle 2 la forma a cada jugador. Ahora, ningún jugador puede tener más
+de 12 de habilidad; si un jugador tiene 11 y la orden es subir 2, pasa a 12, no a 13;
+si estaba en 12 se queda en 12. Escribir una función subirHabilidad/2 que reciba un número
+(que se supone positivo sin validar) y una lista de números, y le suba la habilidad
+a cada jugador cuidando que ninguno se pase de 12
+-}
+
+subirHabilidad :: [Int] -> Int -> [Int]
+subirHabilidad jugadores aumento = map (noSupera12 . (+ aumento) ) jugadores
+
+--funcion min
+noSupera12 :: Int -> Int
+noSupera12 nuevaHabilidad
+    | nuevaHabilidad <= 12 = nuevaHabilidad
+    | otherwise = 12
+
+{-
+-- 13: Ahora el requerimiento es más genérico: hay que cambiar la habilidad de cada jugador
+según una función que recibe la vieja habilidad y devuelve la nueva.
+Armar: una función flimitada que recibe una función f y un número n,
+y devuelve f n garantizando que quede entre 0 y 12 (si f n < 0 debe devolver 0,
+si f n > 12 debe devolver 12)
+-}
+
+fLimitada :: (Int -> Int) -> [Int] -> [Int]
+fLimitada f jugadores = map (dentroDelRango . f ) jugadores
+
+dentroDelRango :: Int -> Int
+dentroDelRango nuevaHabilidad
+    | nuevaHabilidad > 12 = 12
+    | nuevaHabilidad < 0 = 0
+    | otherwise = nuevaHabilidad
+
+--ghci> fLimitada (+(-7)) [6,3,4,11] ==> [0,0,0,4]
+
+--b) Usar cambiarHabilidad/2 para llevar a 4 a los que tenían menos de 4,
+--dejando como estaban al resto
+
+--llevarHabilidadA4 :: [Int] -> [Int]
+llevarHabilidadA4 jugadores = map dentroDelRangoCuatro jugadores
+
+dentroDelRangoCuatro :: Int -> Int
+dentroDelRangoCuatro nuevaHabilidad
+    | nuevaHabilidad > 12 = 12
+    | nuevaHabilidad <= 4 = 4
+    | otherwise = nuevaHabilidad
+
+--14: Investigar lo que hace la función takeWhile/2, que está incluida en el prelude.
+--Preguntar primero el tipo, y después hacer pruebas. Ayudarse con el nombre. 
+
+-- TIPO: takeWhile :: (a -> Bool) -> [a] -> [a]
+-- EJEMPLO: ghci> takeWhile even [2,4,6,8,1,2,4,6,8] ==> [2,4,6,8]
+{-
+Lo que realiza la funcion "takeWhile" es recibir una funcion del tipo "(a -> Bool)"
+como por ejemplo:
+    -even
+    -odd
+    -esVocal
+    -esMultiploDeN
+    -etc.
+Y tambien recibe una lista de tipo "a", lo que hace es tomar los primeros elementos
+de la lista que cumplan con la condicion de la funcion. Hasta encontrar un elemento de la
+lista que no cumpla.
+-}
+
+--15: a) primerosPares/1
+
+primerosPares :: [Int] -> [Int]
+primerosPares numeros = takeWhile even numeros
+
+--b) primerosDivisores (reutilizamos la funcion "esMultiploDe")
+
+primerosDivisores ::Integral b => [b] -> b ->[b]
+primerosDivisores numeros divisor = takeWhile (flip esMultiploDe divisor) numeros
+
+--c) primerosNoDivisores/2 (le compongo la funcion "not")
+
+primerosNoDivisores ::Integral b => [b] -> b ->[b]
+primerosNoDivisores numeros divisor = takeWhile (not.flip esMultiploDe divisor) numeros
+
+--16: No entendi q pide
+
+--17: a)
+crecimientoAnual edad  
+    | edad <= 10 = 24-(edad*2)
+    | edad > 10 && edad <= 15 = 4
+    | edad > 15 && edad <= 17 = 2
+    | edad > 17 && edad <= 19 = 1
+    | otherwise = 0
+--b)
+crecimiento = [24,22,20,18,16,14,12,10,8,6,4,4,4,4,4,4,2,2,1,1,0]
+crecimientoEntreEdades :: Int -> Int -> Int
+crecimientoEntreEdades edadA edadB = sum (take (edadB - edadA) (drop edadA crecimiento))
+--c)
+alturasEnUnAnio :: Int -> [Int] -> [Int]
+alturasEnUnAnio edad personas = map (+ crecimientoAnual edad) personas
+--d)
+alturaEnEdades edadActual altura edades = map ((+altura).(crecimientoEntreEdades edadActual )) edades
+
+--18: a)
+rachasLluvia :: [Integer] -> [[Integer]]
+rachasLluvia [] = []
+rachasLluvia xs = extraerRachas xs
+  where
+    extraerRachas :: [Integer] -> [[Integer]]
+    extraerRachas [] = []
+    extraerRachas (y:ys)
+        | y == 0    = extraerRachas (dropWhile (== 0) ys)
+        | otherwise = (y : takeWhile (/= 0) ys) : extraerRachas (dropWhile (== 0) (dropWhile (/= 0) ys))
+--b)
+mes = [0,2,5,1,34,2,0,21,0,0,0,5,9,18,4,0]
+mayorRachaDeLluvias m = maximum (map length (rachasLluvia m))
+
+--19: Definir una función que sume una lista de números. Nota: Resolverlo utilizando foldl/foldr. 
+sumatoria :: (Foldable t, Num b) => t b -> b
+sumatoria lista = foldr (+) 0 lista
+--20: Definir una función que resuelva la productoria de una lista de números. Nota: Resolverlo utilizando foldl/foldr. 
+productoria :: (Foldable t, Num b) => t b -> b
+productoria lista = foldr (*) 1 lista
+--21:Definir la función dispersion, que recibe una lista de números y devuelve la dispersión de los valores, o sea máximo - mínimo. Nota: Probar de utilizar foldr.  
+dispersion lista = (foldr max (minimum lista) lista)-(foldr min (maximum lista) lista)
